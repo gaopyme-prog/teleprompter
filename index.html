@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teleprompter de Ponencia</title>
+<meta name="description" content="Teleprompter con diapositivas y guion para ponencias virtuales.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&family=Familjen+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main class="wrap" id="setup">
+  <div class="top">
+    <div>
+      <h1>Teleprompter de ponencia</h1>
+      <p>Carga las diapositivas, pega el guion y léelo mientras avanzas. Todo queda guardado en este navegador.</p>
+    </div>
+    <button class="btn primary" id="goStage" type="button" disabled>Presentar</button>
+  </div>
+
+  <section class="step" aria-labelledby="h1s">
+    <header><span class="n">1</span><h2 id="h1s">Diapositivas</h2></header>
+    <p class="hint">Desde PowerPoint o Google Slides exporta la presentación a PDF y súbela aquí. También puedes subir varias imágenes, que se ordenan por nombre.</p>
+    <label class="drop" id="drop">
+      <strong>Elegir PDF o imágenes</strong>
+      <span>o arrástralos hasta aquí</span>
+      <input type="file" id="file" accept=".pdf,application/pdf,image/*" multiple>
+    </label>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="step" aria-labelledby="h2s">
+    <header><span class="n">2</span><h2 id="h2s">Guion</h2></header>
+    <p class="hint">Pega todo el texto y sepáralo con una línea <span class="code">---</span> entre diapositivas. También sirve una línea que diga <span class="code">Diapositiva 3</span>. Si prefieres, escribe el texto directamente en cada tarjeta.</p>
+    <div class="bulk">
+      <textarea id="bulk" aria-label="Guion completo" placeholder="Buenos días a todos y todas. Mi nombre es Tatiana y hoy presento…&#10;&#10;---&#10;&#10;Sobre el problema de investigación, el punto de partida fue…"></textarea>
+      <div class="row">
+        <button class="btn" id="split" type="button">Repartir en diapositivas</button>
+        <button class="btn quiet" id="addBlank" type="button">Agregar diapositiva sin imagen</button>
+        <span class="status" id="splitMsg" role="status" aria-live="polite"></span>
+      </div>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="step" aria-labelledby="h3s">
+    <header><span class="n">3</span><h2 id="h3s">Tiempo y presentación</h2></header>
+    <div class="summary">
+      <div class="figs" id="figs"></div>
+      <div class="fields">
+        <label for="wpm">Palabras por minuto<input id="wpm" type="number" min="60" max="220" step="5"></label>
+        <label for="target">Tiempo asignado (min)<input id="target" type="number" min="1" max="240" step="1"></label>
+      </div>
+    </div>
+    <details class="help">
+      <summary>Cómo usarlo en la videollamada</summary>
+      <ul>
+        <li>Abre esta página en dos pestañas del mismo navegador.</li>
+        <li>En la primera pulsa <b>Presentar</b>, elige <b>Solo diapositiva</b> y comparte esa pestaña en Meet, Zoom o Teams. Es lo que verá el público.</li>
+        <li>En la segunda pulsa <b>Presentar</b> con <b>Diapositiva + guion</b>. Ahí lees. Las dos pestañas cambian de diapositiva a la vez.</li>
+        <li>Atajos: <kbd>Espacio</kbd> inicia o pausa el texto, <kbd>←</kbd> <kbd>→</kbd> cambian de diapositiva, <kbd>↑</kbd> <kbd>↓</kbd> mueven el texto, <kbd>+</kbd> <kbd>−</kbd> cambian la velocidad, <kbd>M</kbd> espejo, <kbd>F</kbd> pantalla completa.</li>
+        <li>Con una tableta o un teléfono: toca el texto para iniciar o pausar, y toca la diapositiva a la derecha o a la izquierda para avanzar o volver.</li>
+      </ul>
+    </details>
+    <div class="row"><button class="btn quiet danger" id="reset" type="button">Borrar todo y empezar de nuevo</button></div>
+  </section>
+</main>
+
+<section class="stage" id="stage" data-mode="both" hidden aria-label="Escenario de presentación">
+  <div class="bar" id="bar">
+    <div class="grp">
+      <button id="bPrev" type="button">← Anterior</button>
+      <span id="counter">1 / 1</span>
+      <button id="bNext" type="button">Siguiente →</button>
+    </div>
+    <button id="bPlay" class="go hide-slide" type="button">Iniciar</button>
+    <label class="rng hide-slide" for="rSpeed">Velocidad<input id="rSpeed" type="range" min="5" max="120" step="1"><output id="oSpeed"></output></label>
+    <label class="rng hide-slide" for="rFont">Letra<input id="rFont" type="range" min="24" max="96" step="2"><output id="oFont"></output></label>
+    <select id="selMode" aria-label="Vista">
+      <option value="both">Diapositiva + guion</option>
+      <option value="script">Solo guion</option>
+      <option value="slide">Solo diapositiva (para compartir)</option>
+    </select>
+    <label class="chk hide-slide"><input type="checkbox" id="cMirror">Espejo</label>
+    <label class="chk hide-slide"><input type="checkbox" id="cGuide">Guía</label>
+    <div class="timer hide-slide">
+      <span id="tClock">00:00 / 20:00</span>
+      <button id="bTimer" type="button" aria-label="Iniciar o pausar cronómetro">▶</button>
+      <button id="bTReset" type="button" aria-label="Reiniciar cronómetro">↺</button>
+    </div>
+    <span class="sp"></span>
+    <button id="bFull" type="button" class="hide-slide">Pantalla completa</button>
+    <button id="bExit" type="button">Salir</button>
+  </div>
+  <div class="sbody">
+    <div class="slidepane">
+      <div class="slidebox" id="slideBox"><img id="slideImg" alt="Diapositiva actual" hidden><div class="noimg" id="noImg">Esta diapositiva no tiene imagen</div></div>
+      <div class="slidemeta"><span id="metaN"></span><span class="chip" id="metaT"></span></div>
+      <div class="nextrow" id="nextRow" hidden><span>Sigue</span><img id="nextImg" alt=""></div>
+    </div>
+    <div class="scriptpane" id="scriptPane">
+      <div class="guide" id="guide"></div>
+      <div class="scroller" id="scroller"><div class="text" id="text"></div></div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
