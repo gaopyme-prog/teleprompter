@@ -421,6 +421,7 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
     clearTimeout(confirmReset); confirmReset = 0; b.textContent = 'Borrar todo y empezar de nuevo';
     resetUrls(); S.imgs = []; S.texts = []; S.i = 0; LS.set('tp_texts', []); LS.set('tp_i', 0);
     $('#bulk').value = ''; setStatus(''); $('#splitMsg').textContent = '';
+    $('#soloText').value = ''; LS.set('tp_solo', ''); soloUpdate();
     await saveImgs(); renderCards();
   });
 
