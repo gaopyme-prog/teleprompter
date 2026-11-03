@@ -117,6 +117,7 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
 .bar #tClock{font-variant-numeric:tabular-nums;font-weight:700;min-width:11ch}
 .bar #tClock.over{color:var(--guide)}
 .bar .sp{flex:1}
+#bPop{border-color:var(--guide)!important}
 .stage[data-mode="slide"] .bar{position:absolute;left:0;right:0;top:env(safe-area-inset-top,0px);z-index:5;opacity:0;transition:opacity .2s}
 .stage[data-mode="slide"] .bar:hover,.stage[data-mode="slide"] .bar:focus-within{opacity:1}
 .stage[data-mode="slide"] .bar .hide-slide{display:none}
@@ -164,6 +165,17 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
   .bar input[type=range]{width:84px}
 }
 
+.solo{display:flex;flex-direction:column;gap:12px;padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.solo h2{font-size:21px;font-weight:600}
+.solo .hint{margin:0;color:var(--muted);max-width:68ch}
+.solo textarea{width:100%;min-height:150px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:10px 12px;resize:vertical;line-height:1.5}
+.solo small{color:var(--muted);font-variant-numeric:tabular-nums}
+#bTop{display:none}
+.stage[data-solo] #bTop{display:inline-block}
+.stage[data-solo] #bPrev,.stage[data-solo] #bNext,.stage[data-solo] #counter,.stage[data-solo] #selMode,.stage[data-solo] #bPop{display:none}
+.stage[data-solo][data-playing] .bar{opacity:0;transition:opacity .3s}
+.stage[data-solo][data-playing] .bar:hover,.stage[data-solo][data-playing] .bar:focus-within{opacity:1}
+.cdown{position:absolute;inset:0;z-index:6;display:grid;place-items:center;pointer-events:none;background:rgba(10,13,15,.85);color:var(--guide);font-family:var(--display);font-weight:700;font-size:min(40vw,300px)}
 </style>
 </head>
 <body>
@@ -175,6 +187,16 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
     </div>
     <button class="btn primary" id="goStage" type="button" disabled>Presentar</button>
   </div>
+
+  <section class="solo" aria-labelledby="hs">
+    <h2 id="hs">Solo leer un texto</h2>
+    <p class="hint">Para grabar un video sin diapositivas: pega tu texto, pulsa el botón y léelo mientras se desplaza. Separa los párrafos con una línea en blanco.</p>
+    <textarea id="soloText" aria-label="Texto para leer" placeholder="Hola, bienvenidos a mi canal. Hoy les voy a contar…"></textarea>
+    <div class="row">
+      <button class="btn primary" id="goSolo" type="button" disabled>Leer sin diapositivas</button>
+      <small id="soloInfo"></small>
+    </div>
+  </section>
 
   <section class="step" aria-labelledby="h1s">
     <header><span class="n">1</span><h2 id="h1s">Diapositivas</h2></header>
@@ -213,9 +235,9 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
     <details class="help">
       <summary>Cómo usarlo en la videollamada</summary>
       <ul>
-        <li>Abre esta página en dos pestañas del mismo navegador.</li>
-        <li>En la primera pulsa <b>Presentar</b>, elige <b>Solo diapositiva</b> y comparte esa pestaña en Meet, Zoom o Teams. Es lo que verá el público.</li>
-        <li>En la segunda pulsa <b>Presentar</b> con <b>Diapositiva + guion</b>. Ahí lees. Las dos pestañas cambian de diapositiva a la vez.</li>
+        <li>Pulsa <b>Presentar</b>. Arriba verás el botón <b>Abrir ventana para compartir</b>: abre una ventana aparte que muestra solo la diapositiva.</li>
+        <li>En Meet, Zoom o Teams elige compartir <b>una ventana</b> y escoge esa ventana. El público ve solo la diapositiva.</li>
+        <li>La ventana del guion sigue en tu pantalla para leer. Las dos cambian de diapositiva a la vez.</li>
         <li>Atajos: <kbd>Espacio</kbd> inicia o pausa el texto, <kbd>←</kbd> <kbd>→</kbd> cambian de diapositiva, <kbd>↑</kbd> <kbd>↓</kbd> mueven el texto, <kbd>+</kbd> <kbd>−</kbd> cambian la velocidad, <kbd>M</kbd> espejo, <kbd>F</kbd> pantalla completa.</li>
         <li>Con una tableta o un teléfono: toca el texto para iniciar o pausar, y toca la diapositiva a la derecha o a la izquierda para avanzar o volver.</li>
       </ul>
@@ -232,6 +254,7 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
       <button id="bNext" type="button">Siguiente →</button>
     </div>
     <button id="bPlay" class="go hide-slide" type="button">Iniciar</button>
+    <button id="bTop" type="button">↺ Inicio</button>
     <label class="rng hide-slide" for="rSpeed">Velocidad<input id="rSpeed" type="range" min="5" max="120" step="1"><output id="oSpeed"></output></label>
     <label class="rng hide-slide" for="rFont">Letra<input id="rFont" type="range" min="24" max="96" step="2"><output id="oFont"></output></label>
     <select id="selMode" aria-label="Vista">
@@ -247,6 +270,7 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
       <button id="bTReset" type="button" aria-label="Reiniciar cronómetro">↺</button>
     </div>
     <span class="sp"></span>
+    <button id="bPop" type="button" class="hide-slide">Abrir ventana para compartir</button>
     <button id="bFull" type="button" class="hide-slide">Pantalla completa</button>
     <button id="bExit" type="button">Salir</button>
   </div>
@@ -258,6 +282,7 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
     </div>
     <div class="scriptpane" id="scriptPane">
       <div class="guide" id="guide"></div>
+      <div class="cdown" id="cdown" hidden></div>
       <div class="scroller" id="scroller"><div class="text" id="text"></div></div>
     </div>
   </div>
@@ -298,6 +323,7 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
   let tTexts = 0;
   const saveTexts = () => { clearTimeout(tTexts); tTexts = setTimeout(() => LS.set('tp_texts', S.texts), 250); };
   const staging = () => !$('#stage').hidden;
+  let solo = false, bak = null, prevMode = null, cd = 0;
 
   function normalize(){
     const n = count();
@@ -489,17 +515,29 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
     const n = count(); if (!n) return;
     i = Math.max(0, Math.min(n - 1, i));
     if (opt.broadcast === false && i === S.i) return;
-    S.i = i; LS.set('tp_i', i);
+    S.i = i; if (!solo) LS.set('tp_i', i);
     renderSlide();
     if (!opt.keepPlay) setPlaying(false);
-    if (opt.broadcast !== false && bc) bc.postMessage({ t: 'go', i });
+    if (opt.broadcast !== false && !solo && bc) bc.postMessage({ t: 'go', i });
+  }
+  function cancelCountdown(){ if (cd){ clearInterval(cd); cd = 0; } $('#cdown').hidden = true; }
+  function startCountdown(){
+    let n = 3; const el = $('#cdown'); el.textContent = n; el.hidden = false;
+    $('#bPlay').textContent = 'Cancelar';
+    cd = setInterval(() => { n--; if (n <= 0){ cancelCountdown(); setPlaying(true); } else el.textContent = n; }, 1000);
   }
   function setPlaying(on){
+    if (!on) cancelCountdown();
+    if (on) stage.dataset.playing = '1'; else delete stage.dataset.playing;
     S.playing = on;
     $('#bPlay').textContent = on ? 'Pausar' : 'Iniciar';
     if (on){ S.pos = sc.scrollTop; if (!T.run) timerToggle(true); }
   }
-  const toggle = () => setPlaying(!S.playing);
+  const toggle = () => {
+    if (cd){ cancelCountdown(); $('#bPlay').textContent = 'Iniciar'; return; }
+    if (!S.playing && solo && sc.scrollTop < 5){ startCountdown(); return; }
+    setPlaying(!S.playing);
+  };
   function setSpeed(v){ cfg.speed = Math.max(5, Math.min(120, Math.round(v))); $('#rSpeed').value = cfg.speed; $('#oSpeed').textContent = cfg.speed; saveCfg(); toast('Velocidad ' + cfg.speed); }
   function nudge(d){ sc.scrollTop += d; S.pos = sc.scrollTop; }
 
@@ -515,8 +553,8 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
   function updateClock(){
     const el = $('#tClock'); if (!el) return;
     const e = elapsed();
-    el.textContent = fmt(e) + ' / ' + fmt(cfg.target * 60);
-    el.classList.toggle('over', e > cfg.target * 60);
+    el.textContent = solo ? fmt(e) : fmt(e) + ' / ' + fmt(cfg.target * 60);
+    el.classList.toggle('over', !solo && e > cfg.target * 60);
   }
   $('#bTimer').addEventListener('click', () => timerToggle());
   $('#bTReset').addEventListener('click', () => { T.run = false; T.acc = 0; $('#bTimer').textContent = '▶'; updateClock(); });
@@ -545,10 +583,34 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
     stage.tabIndex = -1; stage.focus({ preventScroll: true });
   }
   function closeStage(){
+    if (location.hash === '#diapositivas'){ try { window.close(); } catch(e){} }
     setPlaying(false); stage.hidden = true; $('#setup').hidden = false;
+    if (solo){
+      solo = false; delete stage.dataset.solo; mode = prevMode || 'both';
+      S.imgs = bak.imgs; S.texts = bak.texts; S.i = bak.i; S.urls = bak.urls; bak = null;
+    }
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     renderCards();
   }
+  function soloUpdate(){
+    const t = $('#soloText').value, w = words(t);
+    $('#soloInfo').textContent = w ? w + ' palabras · ≈ ' + fmt(w / cfg.wpm * 60) + ' de lectura' : '';
+    $('#goSolo').disabled = !t.trim();
+  }
+  function openSolo(){
+    const raw = $('#soloText').value, txt = raw.trim();
+    if (!txt) return;
+    LS.set('tp_solo', raw);
+    bak = { imgs: S.imgs, texts: S.texts, i: S.i, urls: S.urls };
+    prevMode = mode;
+    S.imgs = [null]; S.texts = [txt]; S.i = 0; S.urls = [];
+    solo = true; mode = 'script'; stage.dataset.solo = '1';
+    T.run = false; T.acc = 0; $('#bTimer').textContent = '▶';
+    openStage();
+  }
+  $('#soloText').addEventListener('input', () => { LS.set('tp_solo', $('#soloText').value); soloUpdate(); });
+  $('#goSolo').addEventListener('click', openSolo);
+  $('#bTop').addEventListener('click', () => go(0));
   $('#goStage').addEventListener('click', openStage);
   $('#bExit').addEventListener('click', closeStage);
 
@@ -565,6 +627,12 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
   if (!document.fullscreenEnabled) fsBtn.hidden = true;
   const toggleFull = () => { if (!document.fullscreenEnabled) return; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else document.documentElement.requestFullscreen().catch(() => {}); };
   fsBtn.addEventListener('click', toggleFull);
+  const isSlideWin = location.hash === '#diapositivas';
+  $('#bPop').addEventListener('click', () => {
+    const url = location.href.split('#')[0] + '#diapositivas';
+    const w = window.open(url, 'tp-slides', 'popup=yes,width=1280,height=720');
+    toast(w ? 'Ventana abierta. Compártela en la videollamada.' : 'El navegador bloqueó la ventana. Permite las ventanas emergentes de este sitio.');
+  });
   $('#bar').addEventListener('click', e => { const b = e.target.closest('button'); if (b) b.blur(); });
   ['rSpeed', 'rFont', 'selMode', 'cMirror', 'cGuide'].forEach(id => $('#' + id).addEventListener('change', e => e.target.blur()));
 
@@ -597,14 +665,14 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
   /* Sincronía entre pestañas */
   if (bc) bc.onmessage = async ev => {
     const m = ev.data || {};
-    if (m.t === 'go' && staging()) go(m.i, { broadcast: false, keepPlay: true });
-    if (m.t === 'imgs'){
+    if (m.t === 'go' && staging() && !solo) go(m.i, { broadcast: false, keepPlay: true });
+    if (m.t === 'imgs' && !solo){
       try { const v = await idbGet('imgs'); if (Array.isArray(v)){ resetUrls(); S.imgs = v; normalize(); if (staging()) renderSlide(); else renderCards(); } } catch(e){}
     }
   };
   window.addEventListener('storage', e => {
-    if (e.key === 'tp_i' && staging()) go(+JSON.parse(e.newValue), { broadcast: false, keepPlay: true });
-    if (e.key === 'tp_texts'){ S.texts = LS.get('tp_texts', []); normalize(); if (staging()) renderSlide(); }
+    if (e.key === 'tp_i' && staging() && !solo) go(+JSON.parse(e.newValue), { broadcast: false, keepPlay: true });
+    if (e.key === 'tp_texts' && !solo){ S.texts = LS.get('tp_texts', []); normalize(); if (staging()) renderSlide(); }
   });
 
   /* Inicio */
@@ -613,6 +681,7 @@ h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
     try { const v = await idbGet('imgs'); if (Array.isArray(v)) S.imgs = v; } catch(e){}
     normalize();
     $('#wpm').value = cfg.wpm; $('#target').value = cfg.target;
+    $('#soloText').value = LS.get('tp_solo', ''); soloUpdate();
     renderCards();
     if (location.hash === '#diapositivas'){ mode = 'slide'; SS.set('tp_mode', mode); }
     if (location.hash === '#diapositivas' && count()) openStage();
